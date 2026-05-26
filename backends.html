@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JAMB CBT Practice — JambPrep</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f4f8;
+    color: #1a1a2e;
+    min-height: 100vh;
+  }
+
+  /* ── NAVIGATION BAR ── */
+  nav {
+    background: #0f3460;
+    color: white;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  nav h1 { font-size: 20px; letter-spacing: 1px; }
+  nav span { font-size: 13px; opacity: 0.7; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── HOME SCREEN ── */
+  #home-screen {
+    max-width: 680px;
+    margin: 40px auto;
+    padding: 0 16px;
+  }
+  .welcome-card {
+    background: white;
+    border-radius: 16px;
+    padding: 36px 32px;
+    text-align: center;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+  }
+  .welcome-card .emoji { font-size: 56px; margin-bottom: 12px; }
+  .welcome-card h2 { font-size: 26px; margin-bottom: 8px; color: #0f3460; }
+  .welcome-card p { color: #555; font-size: 15px; line-height: 1.6; margin-bottom: 28px; }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 28px;
+  }
+  .stat { text-align: center; }
+  .stat .val { font-size: 28px; font-weight: 700; color: #0f3460; }
+  .stat .lbl { font-size: 12px; color: #888; margin-top: 2px; }
+
+  .subject-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .subject-card {
+    border: 2px solid #e0e7ef;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    background: white;
+  }
+  .subject-card:hover { border-color: #0f3460; background: #f0f4f8; }
+  .subject-card.selected { border-color: #0f3460; background: #e8f0fe; }
+  .subject-card .icon { font-size: 28px; margin-bottom: 6px; }
+  .subject-card .name { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+  .subject-card .count { font-size: 12px; color: #888; margin-top: 2px; }
+
+  .settings-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .setting-group {
+    flex: 1;
+    background: white;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .setting-group label { font-size: 12px; color: #888; display: block; margin-bottom: 6px; }
+  .setting-group select {
+    width: 100%;
+    border: 1px solid #e0e7ef;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+    color: #1a1a2e;
+    background: white;
+    cursor: pointer;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .btn-primary { background: #0f3460; color: white; }
+  .btn-primary:hover { background: #16213e; }
+  .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-secondary { background: white; color: #0f3460; border: 2px solid #0f3460; margin-top: 10px; }
+  .btn-secondary:hover { background: #e8f0fe; }
+  .btn-green { background: #1a7a4a; color: white; }
+  .btn-green:hover { background: #155e38; }
+
+  /* ── QUIZ SCREEN ── */
+  #quiz-screen { max-width: 680px; margin: 0 auto; padding: 16px; }
+
+  .quiz-header {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .quiz-info { font-size: 13px; color: #555; }
+  .quiz-info strong { color: #0f3460; }
+  .timer-box {
+    background: #0f3460;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    min-width: 80px;
+    text-align: center;
+  }
+  .timer-box.warning { background: #c0392b; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+  .progress-wrap { margin-bottom: 16px; }
+  .progress-bar {
+    height: 6px;
+    background: #e0e7ef;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #0f3460;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+  }
+
+  .question-card {
+    background: white;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    margin-bottom: 16px;
+  }
+  .question-tag {
+    display: inline-block;
+    background: #e8f0fe;
+    color: #0f3460;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .question-text {
+    font-size: 16px;
+    line-height: 1.65;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 15px;
+    border: 2px solid #e0e7ef;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: white;
+  }
+  .option:hover:not(.locked) { border-color: #0f3460; background: #f5f8ff; }
+  .option.selected { border-color: #0f3460; background: #e8f0fe; }
+  .option.correct { border-color: #1a7a4a; background: #e8f8ee; }
+  .option.wrong { border-color: #c0392b; background: #fdecea; }
+  .option.locked { cursor: default; }
+
+  .opt-letter {
+    min-width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    flex-shrink: 0;
+  }
+  .option.selected .opt-letter { background: #0f3460; color: white; border-color: #0f3460; }
+  .option.correct .opt-letter { background: #1a7a4a; color: white; border-color: #1a7a4a; }
+  .option.wrong .opt-letter { background: #c0392b; color: white; border-color: #c0392b; }
+
+  .opt-text { font-size: 14px; color: #1a1a2e; line-height: 1.5; padding-top: 5px; }
+
+  .explanation-box {
+    background: #fffbea;
+    border-left: 4px solid #f0a500;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.6;
+    display: none;
+  }
+  .explanation-box strong { color: #1a1a2e; display: block; margin-bottom: 4px; }
+
+  .quiz-nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .quiz-nav .btn { font-size: 14px; padding: 12px; }
+
+  /* ── RESULTS SCREEN ── */
+  #results-screen {
+    max-width: 680px;
+    margin: 30px auto;
+    padding: 0 16px 40px;
+  }
+
+  .result-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+  }
+  .result-card h2 { font-size: 22px; margin-bottom: 6px; color: #0f3460; }
+  .result-card p { color: #777; font-size: 14px; margin-bottom: 24px; }
+
+  .score-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    border: 8px solid #0f3460;
+  }
+  .score-circle.pass { border-color: #1a7a4a; background: #e8f8ee; }
+  .score-circle.fail { border-color: #c0392b; background: #fdecea; }
+  .score-circle .big { font-size: 38px; font-weight: 800; color: #0f3460; }
+  .score-circle.pass .big { color: #1a7a4a; }
+  .score-circle.fail .big { color: #c0392b; }
+  .score-circle .small { font-size: 13px; color: #888; }
+
+  .result-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .r-stat { text-align: center; }
+  .r-stat .rv { font-size: 22px; font-weight: 700; color: #0f3460; }
+  .r-stat .rl { font-size: 12px; color: #888; }
+
+  .verdict {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .verdict.pass { background: #e8f8ee; color: #1a7a4a; }
+  .verdict.fail { background: #fdecea; color: #c0392b; }
+
+  .review-section { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 1px 8px rgba(0,0,0,0.06); margin-bottom: 16px; }
+  .review-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #0f3460; border-bottom: 1px solid #e0e7ef; padding-bottom: 10px; }
+
+  .review-item { padding: 12px 0; border-bottom: 1px solid #f0f4f8; }
+  .review-item:last-child { border-bottom: none; }
+  .review-item .rq { font-size: 13px; color: #444; margin-bottom: 8px; line-height: 1.5; }
+  .review-item .ra { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .tag-ok { background: #e8f8ee; color: #1a7a4a; }
+  .tag-bad { background: #fdecea; color: #c0392b; }
+  .tag-right { background: #e8f0fe; color: #0f3460; }
+
+  .result-btns { display: flex; gap: 12px; }
+  .result-btns .btn { flex: 1; }
+
+  @media (max-width: 480px) {
+    .subject-grid { grid-template-columns: 1fr; }
+    .settings-row { flex-direction: column; }
+    .result-stats { gap: 16px; }
+    .welcome-card { padding: 24px 16px; }
+    .result-card { padding: 24px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <h1>🎓 JambPrep</h1>
+  <span>CBT Practice Portal</span>
+</nav>
+
+<!-- ═══ HOME SCREEN ═══ -->
+<div id="home-screen" class="screen active">
+  <div class="welcome-card">
+    <div class="emoji">📚</div>
+    <h2>JAMB CBT Practice</h2>
+    <p>Practice with real-style questions across all major JAMB subjects. Get instant feedback, explanations, and your JAMB score estimate.</p>
+    <div class="stats-row">
+      <div class="stat"><div class="val">50+</div><div class="lbl">Questions</div></div>
+      <div class="stat"><div class="val">4</div><div class="lbl">Subjects</div></div>
+      <div class="stat"><div class="val">400</div><div class="lbl">Max score</div></div>
+    </div>
+    <p style="font-size:13px;color:#888;margin-bottom:0;">Select a subject and number of questions to begin</p>
+  </div>
+
+  <div class="subject-grid">
+    <div class="subject-card selected" onclick="selectSubject(this,'english')">
+      <div class="icon">✍️</div>
+      <div class="name">English Language</div>
+      <div class="count">15 questions available</div>
+    </div>
+    <div class="subject-card" onclick="selectSubject(this,'mathematics')">
+      <div class="icon">🔢</div>
+      <div class="name">Mathematics</div>
+      <div class="count">15 questions available</div>
+    </div>
+    <div class="subject-card" onclick="selectSubject(this,'biology')">
+      <div class="icon">🧬</div>
+      <div class="name">Biology</div>
+      <div class="count">10 questions available</div>
+    </div>
+    <div class="subject-card" onclick="selectSubject(this,'chemistry')">
+      <div class="icon">⚗️</div>
+      <div class="name">Chemistry</div>
+      <div class="count">10 questions available</div>
+    </div>
+    <div class="subject-card" onclick="selectSubject(this,'physics')">
+      <div class="icon">⚡</div>
+      <div class="name">Physics</div>
+      <div class="count">10 questions available</div>
+    </div>
+    <div class="subject-card" onclick="selectSubject(this,'mixed')">
+      <div class="icon">🎯</div>
+      <div class="name">Mixed (All subjects)</div>
+      <div class="count">Random from all subjects</div>
+    </div>
+  </div>
+
+  <div class="settings-row">
+    <div class="setting-group">
+      <label>Number of questions</label>
+      <select id="num-questions">
+        <option value="10">10 questions</option>
+        <option value="20" selected>20 questions</option>
+        <option value="30">30 questions</option>
+        <option value="40">40 questions (JAMB style)</option>
+      </select>
+    </div>
+    <div class="setting-group">
+      <label>Time limit</label>
+      <select id="time-limit">
+        <option value="600">10 minutes</option>
+        <option value="1200" selected>20 minutes</option>
+        <option value="1800">30 minutes</option>
+        <option value="3600">60 minutes (Full exam)</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="startQuiz()">🚀 Start Practice Now</button>
+</div>
+
+<!-- ═══ QUIZ SCREEN ═══ -->
+<div id="quiz-screen" class="screen">
+  <div class="quiz-header">
+    <div class="quiz-info">
+      <strong id="q-subject">English</strong> &nbsp;|&nbsp;
+      Question <strong id="q-current">1</strong> of <strong id="q-total">20</strong>
+    </div>
+    <div class="timer-box" id="timer">20:00</div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-label">
+      <span id="prog-left">0 answered</span>
+      <span id="prog-right">0 correct</span>
+    </div>
+  </div>
+
+  <div class="question-card">
+    <div class="question-tag" id="q-tag">English · Comprehension</div>
+    <div class="question-text" id="q-text">Loading question...</div>
+    <div class="options" id="options-container"></div>
+    <div class="explanation-box" id="explanation-box">
+      <strong>💡 Explanation</strong>
+      <span id="explanation-text"></span>
+    </div>
+  </div>
+
+  <div class="quiz-nav">
+    <button class="btn btn-secondary" style="flex:0.4" onclick="skipQuestion()" id="skip-btn">Skip</button>
+    <button class="btn btn-primary" style="flex:1" onclick="nextQuestion()" id="next-btn" disabled>Next Question →</button>
+  </div>
+</div>
+
+<!-- ═══ RESULTS SCREEN ═══ -->
+<div id="results-screen" class="screen">
+  <div class="result-card">
+    <h2>Quiz Complete! 🎉</h2>
+    <p>Here's your performance summary</p>
+
+    <div class="score-circle" id="score-circle">
+      <div class="big" id="score-display">0</div>
+      <div class="small">/ 400</div>
+    </div>
+
+    <div class="verdict" id="verdict">Calculating...</div>
+
+    <div class="result-stats">
+      <div class="r-stat"><div class="rv" id="r-correct">0</div><div class="rl">Correct</div></div>
+      <div class="r-stat"><div class="rv" id="r-wrong">0</div><div class="rl">Wrong</div></div>
+      <div class="r-stat"><div class="rv" id="r-skipped">0</div><div class="rl">Skipped</div></div>
+      <div class="r-stat"><div class="rv" id="r-percent">0%</div><div class="rl">Accuracy</div></div>
+      <div class="r-stat"><div class="rv" id="r-time">0:00</div><div class="rl">Time used</div></div>
+    </div>
+  </div>
+
+  <div class="review-section">
+    <h3>📋 Question Review</h3>
+    <div id="review-container"></div>
+  </div>
+
+  <div class="result-btns">
+    <button class="btn btn-secondary" onclick="goHome()">🏠 Home</button>
+    <button class="btn btn-green" onclick="startQuiz()">🔄 Try Again</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// QUESTION BANK — Add more questions here!
+// ═══════════════════════════════════════
+const QUESTIONS = {
+  english: [
+    { q: "Choose the word that best completes the sentence: 'The politician's speech was so ______ that even his opponents were impressed.'", opts: ["dull","eloquent","confusing","brief"], a: 1, tag: "Vocabulary", exp: "'Eloquent' means fluent and persuasive in speech. It is the only option that makes sense — impressing opponents requires impressive speaking ability." },
+    { q: "Identify the figure of speech: 'The wind whispered secrets through the ancient trees.'", opts: ["Simile","Hyperbole","Personification","Metaphor"], a: 2, tag: "Literary Devices", exp: "Personification gives the wind a human quality — the ability to whisper. Wind cannot whisper; this is a human action attributed to a non-human thing." },
+    { q: "In which of these sentences is the apostrophe used correctly?", opts: ["Its raining outside","The dog wagged it's tail","The students' books were stolen","The boys' is here"], a: 2, tag: "Punctuation", exp: "'The students' books' correctly uses an apostrophe after 'students' to show possession by multiple students." },
+    { q: "Choose the option nearest in meaning to the underlined word: 'The teacher gave an AMBIGUOUS explanation.'", opts: ["Clear","Confusing","Long","Short"], a: 1, tag: "Vocabulary", exp: "'Ambiguous' means open to more than one interpretation — unclear or confusing. The synonym is 'confusing'." },
+    { q: "Select the option with the correct tense: 'By next year, the project ______ completed.'", opts: ["will be","would have been","will have been","was"], a: 2, tag: "Grammar", exp: "'Will have been' is the future perfect tense, used for an action that will be completed before a specific future time ('by next year')." },
+    { q: "Which of the following is a compound sentence?", opts: ["She ran fast.","She ran and he walked.","She ran because she was late.","Running fast, she arrived early."], a: 1, tag: "Sentence Types", exp: "A compound sentence joins two independent clauses with a conjunction. 'She ran AND he walked' has two independent clauses joined by 'and'." },
+    { q: "The word 'BENEVOLENT' is closest in meaning to:", opts: ["Cruel","Generous","Lazy","Proud"], a: 1, tag: "Vocabulary", exp: "'Benevolent' means well-meaning and kind. A benevolent person is generous and charitable." },
+    { q: "Choose the grammatically correct sentence:", opts: ["Between you and I, this is wrong.","Neither of the boys have arrived.","The committee has made its decision.","Everyone should mind their own businesses."], a: 2, tag: "Grammar", exp: "'The committee has made its decision' is correct. 'Committee' is a collective noun — it takes a singular verb ('has') and singular pronoun ('its')." },
+    { q: "What is the plural of 'criterion'?", opts: ["Criterions","Criterias","Criteria","Criterions"], a: 2, tag: "Grammar", exp: "'Criteria' is the plural of 'criterion'. This is a Latin-origin word that keeps its Latin plural form." },
+    { q: "Identify the type of pronoun in: 'Himself, he admitted the mistake.'", opts: ["Personal","Reflexive","Intensive","Demonstrative"], a: 2, tag: "Parts of Speech", exp: "When 'himself' is used for emphasis (not as a direct object), it is an intensive pronoun. It emphasises that HE admitted it, not someone else." },
+    { q: "Choose the option that correctly rewrites the sentence in passive voice: 'The teacher punished the students.'", opts: ["The students were punished by the teacher.","The students had been punished by the teacher.","The students are being punished by the teacher.","The students punished the teacher."], a: 0, tag: "Grammar", exp: "To convert to passive: subject becomes object. 'The students' becomes the subject of the passive sentence: 'The students WERE PUNISHED by the teacher.'" },
+    { q: "Select the word that is OPPOSITE in meaning to 'MAGNANIMOUS':", opts: ["Generous","Petty","Brave","Honest"], a: 1, tag: "Antonyms", exp: "'Magnanimous' means generous in forgiving and not petty. Its antonym is 'petty' — mean-spirited and small-minded." },
+    { q: "Which of these sentences contains a dangling modifier?", opts: ["Running down the street, the dog barked at me.","She drove the car carefully.","Having finished her work, she relaxed.","The boy who studied hard passed the exam."], a: 0, tag: "Grammar", exp: "In 'Running down the street, the dog barked at me', the modifier 'running' appears to describe the dog, but the person was running — not the dog. This is a dangling modifier." },
+    { q: "Choose the word with the correct spelling:", opts: ["Accomodate","Accommodate","Acommodate","Acomodate"], a: 1, tag: "Spelling", exp: "'Accommodate' has double 'c' and double 'm'. A good memory trick: it has enough room to accommodate TWO c's and TWO m's!" },
+    { q: "In the sentence 'She looked ASKANCE at the offer', the word 'askance' means:", opts: ["With approval","With suspicion","With excitement","With sadness"], a: 1, tag: "Vocabulary", exp: "'Askance' means with suspicion or distrust. If someone looks at something askance, they view it with doubt." }
+  ],
+
+  mathematics: [
+    { q: "Simplify: log₁₀(1000)", opts: ["1","2","3","4"], a: 2, tag: "Logarithms", exp: "log₁₀(1000) = log₁₀(10³) = 3. Ask yourself: 10 to what power gives 1000? The answer is 3." },
+    { q: "If 3x + 7 = 22, find the value of x.", opts: ["3","4","5","6"], a: 2, tag: "Algebra", exp: "3x + 7 = 22 → 3x = 22 − 7 = 15 → x = 15 ÷ 3 = 5" },
+    { q: "What is the simple interest on ₦8,000 at 5% per annum for 4 years?", opts: ["₦1,200","₦1,400","₦1,600","₦2,000"], a: 2, tag: "Commercial Maths", exp: "SI = (P × R × T) ÷ 100 = (8000 × 5 × 4) ÷ 100 = 160,000 ÷ 100 = ₦1,600" },
+    { q: "Find the gradient of the line passing through (2, 3) and (6, 11).", opts: ["1","2","3","4"], a: 1, tag: "Coordinate Geometry", exp: "Gradient = (y₂ − y₁) ÷ (x₂ − x₁) = (11 − 3) ÷ (6 − 2) = 8 ÷ 4 = 2" },
+    { q: "Evaluate: ²⁵C₂ (25 choose 2)", opts:["200","250","300","325"], a: 2, tag: "Permutation & Combination", exp: "ⁿCᵣ = n! ÷ (r!(n−r)!) = 25! ÷ (2! × 23!) = (25 × 24) ÷ (2 × 1) = 600 ÷ 2 = 300" },
+    { q: "The angles of a triangle are in the ratio 2:3:5. Find the largest angle.", opts: ["54°","72°","90°","108°"], a: 2, tag: "Geometry", exp: "Total ratio = 2+3+5 = 10. Largest angle = (5/10) × 180° = 90°" },
+    { q: "If y = 3x² − 2x + 1, find dy/dx.", opts: ["6x − 2","3x − 2","6x + 1","3x² − 2"], a: 0, tag: "Calculus", exp: "Differentiating term by term: d/dx(3x²) = 6x, d/dx(−2x) = −2, d/dx(1) = 0. So dy/dx = 6x − 2." },
+    { q: "Solve: x² − 5x + 6 = 0", opts: ["x = 2 or x = 3","x = −2 or x = 3","x = 2 or x = −3","x = −2 or x = −3"], a: 0, tag: "Algebra", exp: "Factor: (x − 2)(x − 3) = 0. So x = 2 or x = 3. Check: 2² − 5(2) + 6 = 4 − 10 + 6 = 0 ✓" },
+    { q: "The mean of 5, 8, x, 12, and 10 is 9. Find x.", opts: ["8","10","11","13"], a: 1, tag: "Statistics", exp: "Mean = Sum ÷ Count → 9 = (5+8+x+12+10) ÷ 5 → 45 = 35 + x → x = 10" },
+    { q: "A chord is 8cm long and is 3cm from the centre of a circle. Find the radius.", opts: ["4 cm","5 cm","6 cm","7 cm"], a: 1, tag: "Circle Geometry", exp: "The perpendicular from centre bisects the chord into 4 cm each. Using Pythagoras: r² = 4² + 3² = 16 + 9 = 25. So r = 5 cm." },
+    { q: "Convert 0.375 to a fraction in its lowest terms.", opts: ["1/4","3/8","2/5","1/3"], a: 1, tag: "Number Theory", exp: "0.375 = 375/1000. Simplify by dividing by 125: 375÷125 = 3, 1000÷125 = 8. So 0.375 = 3/8." },
+    { q: "If P = {2, 3, 5, 7} and Q = {1, 2, 3, 4}, find P ∩ Q.", opts: ["{2, 3}","{1, 2, 3, 4, 5, 7}","{1, 4}","{5, 7}"], a: 0, tag: "Sets", exp: "P ∩ Q means elements in BOTH sets. Elements in P that are also in Q: 2 and 3. So P ∩ Q = {2, 3}." },
+    { q: "Evaluate: (2³ × 2⁴) ÷ 2⁵", opts: ["2","4","8","16"], a: 1, tag: "Indices", exp: "Using index laws: 2³ × 2⁴ = 2^(3+4) = 2⁷. Then 2⁷ ÷ 2⁵ = 2^(7−5) = 2² = 4." },
+    { q: "Find the volume of a cylinder with radius 7cm and height 10cm. (π = 22/7)", opts: ["1,440 cm³","1,540 cm³","1,640 cm³","1,740 cm³"], a: 1, tag: "Mensuration", exp: "V = πr²h = (22/7) × 7² × 10 = (22/7) × 49 × 10 = 22 × 7 × 10 = 1540 cm³" },
+    { q: "If the probability that it rains on a day is 0.3, what is the probability that it does NOT rain?", opts: ["0.3","0.5","0.7","1.0"], a: 2, tag: "Probability", exp: "P(not raining) = 1 − P(raining) = 1 − 0.3 = 0.7. The probabilities of all outcomes must sum to 1." }
+  ],
+
+  biology: [
+    { q: "The powerhouse of the cell — the organelle that produces ATP — is the:", opts: ["Nucleus","Ribosome","Mitochondrion","Golgi apparatus"], a: 2, tag: "Cell Biology", exp: "The mitochondrion (plural: mitochondria) produces ATP through cellular respiration, converting glucose and oxygen into usable energy. Hence 'powerhouse of the cell'." },
+    { q: "Which blood group is known as the universal donor?", opts: ["A","B","AB","O"], a: 3, tag: "Blood Groups", exp: "Blood group O has no A or B antigens on its red blood cells, so it can be donated to recipients of any blood group without triggering an immune response." },
+    { q: "Photosynthesis takes place in which part of the plant cell?", opts: ["Mitochondria","Chloroplast","Nucleus","Vacuole"], a: 1, tag: "Plant Biology", exp: "Chloroplasts contain chlorophyll, the pigment that absorbs light energy to power photosynthesis: CO₂ + H₂O + light energy → glucose + O₂." },
+    { q: "The process by which plants lose water through their leaves is called:", opts: ["Osmosis","Transpiration","Respiration","Diffusion"], a: 1, tag: "Plant Physiology", exp: "Transpiration is the evaporation of water from plant surfaces, mainly through pores called stomata on leaves. It drives water uptake from roots." },
+    { q: "Which of the following is NOT a function of the human skeleton?", opts: ["Support","Protection","Blood cell production","Digestion of food"], a: 3, tag: "Human Body", exp: "The skeleton provides support, protection of organs, and produces blood cells (in bone marrow). Digestion of food is performed by the digestive system, not the skeleton." },
+    { q: "The basic unit of heredity is the:", opts: ["Chromosome","Gene","DNA","Nucleus"], a: 1, tag: "Genetics", exp: "A gene is the basic unit of heredity — a specific sequence of DNA that codes for a protein or trait. Chromosomes are made up of many genes." },
+    { q: "In which stage of mitosis do chromosomes line up at the equator of the cell?", opts: ["Prophase","Metaphase","Anaphase","Telophase"], a: 1, tag: "Cell Division", exp: "During Metaphase, chromosomes align at the cell's equatorial plate (metaphase plate). This ensures each daughter cell receives the same number of chromosomes." },
+    { q: "The part of the brain that controls balance and coordination is the:", opts: ["Cerebrum","Cerebellum","Medulla oblongata","Hypothalamus"], a: 1, tag: "Nervous System", exp: "The cerebellum (at the back of the brain) coordinates muscle movement and maintains balance and posture. Damage to it causes uncoordinated movement." },
+    { q: "Which enzyme is responsible for breaking down starch in the mouth?", opts: ["Pepsin","Lipase","Amylase","Trypsin"], a: 2, tag: "Digestion", exp: "Salivary amylase (ptyalin) is produced by salivary glands and begins digesting starch into maltose in the mouth. This is why bread tastes sweet if you chew it long enough." },
+    { q: "What type of reproduction involves only one parent and produces genetically identical offspring?", opts: ["Sexual reproduction","Asexual reproduction","Fertilisation","Pollination"], a: 1, tag: "Reproduction", exp: "Asexual reproduction involves only one parent, and the offspring are genetically identical clones (e.g. budding in yeast, binary fission in bacteria)." }
+  ],
+
+  chemistry: [
+    { q: "What is the chemical formula for sulphuric acid?", opts: ["HCl","H₂SO₄","H₂SO₃","HNO₃"], a: 1, tag: "Chemical Formulae", exp: "H₂SO₄ is sulphuric acid — a strong acid made of 2 Hydrogen, 1 Sulphur, and 4 Oxygen atoms. HCl is hydrochloric, HNO₃ is nitric acid." },
+    { q: "Which of the following is a noble gas?", opts: ["Nitrogen","Oxygen","Argon","Chlorine"], a: 2, tag: "Periodic Table", exp: "Argon (Ar) is in Group 18 — the noble gases. Noble gases have a full outer electron shell, making them chemically inert (unreactive)." },
+    { q: "The process of converting a liquid to a gas by heating is called:", opts: ["Condensation","Evaporation","Sublimation","Melting"], a: 1, tag: "States of Matter", exp: "Evaporation is the change of state from liquid to gas. Condensation is the reverse. Sublimation is solid directly to gas (e.g. iodine, dry ice)." },
+    { q: "Sodium chloride (common table salt) has which type of bonding?", opts: ["Covalent bonding","Metallic bonding","Ionic bonding","Hydrogen bonding"], a: 2, tag: "Chemical Bonding", exp: "NaCl is formed by the transfer of an electron from sodium (Na) to chlorine (Cl), creating Na⁺ and Cl⁻ ions — this is ionic bonding." },
+    { q: "What is the pH of a neutral solution at 25°C?", opts: ["0","7","10","14"], a: 1, tag: "Acids & Bases", exp: "pH 7 is neutral. Below 7 is acidic, above 7 is alkaline/basic. Pure water at 25°C has pH 7." },
+    { q: "Which gas is produced when zinc reacts with dilute hydrochloric acid?", opts: ["Oxygen","Carbon dioxide","Hydrogen","Nitrogen"], a: 2, tag: "Chemical Reactions", exp: "Zn + 2HCl → ZnCl₂ + H₂. When a metal reacts with a dilute acid, the products are a salt and hydrogen gas." },
+    { q: "How many electrons can the second shell of an atom hold?", opts: ["2","4","8","18"], a: 2, tag: "Atomic Structure", exp: "The maximum electrons per shell follow 2n² rule. Shell 1 = 2(1²) = 2. Shell 2 = 2(2²) = 8. Shell 3 = 2(3²) = 18." },
+    { q: "What is the IUPAC name of CH₃CH₂OH?", opts: ["Methanol","Ethanol","Propanol","Butanol"], a: 1, tag: "Organic Chemistry", exp: "CH₃CH₂OH has 2 carbon atoms (eth-) and is an alcohol (-anol). Its IUPAC name is ethanol (also known as drinking alcohol)." },
+    { q: "The rate of a chemical reaction is increased by all EXCEPT:", opts: ["Increasing temperature","Adding a catalyst","Increasing concentration","Decreasing surface area"], a: 3, tag: "Reaction Rates", exp: "Decreasing surface area REDUCES the reaction rate — fewer reactant particles are exposed. Increasing temperature, adding a catalyst, and increasing concentration all speed up reactions." },
+    { q: "What type of reaction is: CaCO₃ → CaO + CO₂?", opts: ["Combination","Decomposition","Displacement","Neutralisation"], a: 1, tag: "Types of Reactions", exp: "Decomposition is when one compound breaks down into two or more simpler substances. Here, calcium carbonate decomposes on heating into calcium oxide and carbon dioxide." }
+  ],
+
+  physics: [
+    { q: "The unit of electrical resistance is:", opts: ["Volt","Ampere","Ohm","Watt"], a: 2, tag: "Electricity", exp: "Resistance is measured in Ohms (Ω), named after Georg Simon Ohm. His law states V = IR, where V is voltage, I is current, and R is resistance." },
+    { q: "Which of Newton's laws states that every action has an equal and opposite reaction?", opts: ["First law","Second law","Third law","Law of Gravitation"], a: 2, tag: "Mechanics", exp: "Newton's Third Law: For every action there is an equal and opposite reaction. Example: a rocket pushes gas downward (action), gas pushes rocket upward (reaction)." },
+    { q: "What is the speed of light in a vacuum?", opts: ["3 × 10⁶ m/s","3 × 10⁸ m/s","3 × 10¹⁰ m/s","3 × 10¹² m/s"], a: 1, tag: "Waves & Optics", exp: "The speed of light in a vacuum is approximately 3 × 10⁸ m/s (300,000 km/s). This is denoted 'c' and is a fundamental constant of physics." },
+    { q: "A body moving in a circle at constant speed has:", opts: ["Constant velocity","Zero acceleration","Centripetal acceleration","Constant kinetic energy"], a: 2, tag: "Circular Motion", exp: "Even at constant speed, circular motion involves changing direction, so velocity changes — meaning there IS acceleration. This acceleration points toward the centre (centripetal)." },
+    { q: "What type of wave is a sound wave?", opts: ["Transverse","Longitudinal","Electromagnetic","Mechanical transverse"], a: 1, tag: "Waves", exp: "Sound waves are longitudinal waves — particles vibrate parallel to the direction of wave travel (compressions and rarefactions). Light waves are transverse." },
+    { q: "The energy stored in a stretched elastic material is called:", opts: ["Kinetic energy","Gravitational PE","Elastic PE","Nuclear energy"], a: 2, tag: "Energy", exp: "Elastic potential energy is stored in deformed elastic materials. Formula: E = ½ke² where k is spring constant and e is extension (Hooke's Law)." },
+    { q: "A transformer has 400 turns in the primary coil and 100 in the secondary. If input voltage is 240V, what is the output?", opts: ["60V","120V","480V","960V"], a: 0, tag: "Electromagnetism", exp: "Turns ratio = Voltage ratio. Vs/Vp = Ns/Np → Vs = 240 × (100/400) = 240 × 0.25 = 60V. This is a step-down transformer." },
+    { q: "Which instrument is used to measure atmospheric pressure?", opts: ["Thermometer","Barometer","Hygrometer","Manometer"], a: 1, tag: "Pressure", exp: "A barometer measures atmospheric (air) pressure. A thermometer measures temperature, a hygrometer measures humidity, a manometer measures gas/liquid pressure in closed systems." },
+    { q: "The half-life of a radioactive substance is 20 years. How much of a 160g sample remains after 60 years?", opts: ["10g","20g","40g","80g"], a: 1, tag: "Nuclear Physics", exp: "60 years = 3 half-lives. After each half-life, half remains: 160g → 80g → 40g → 20g. After 3 half-lives: 160 ÷ 2³ = 160 ÷ 8 = 20g." },
+    { q: "What does an ammeter measure and how is it connected in a circuit?", opts: ["Voltage; in parallel","Current; in series","Resistance; in series","Power; in parallel"], a: 1, tag: "Electricity", exp: "An ammeter measures electric current in amperes and must be connected in SERIES so all current flows through it. A voltmeter measures voltage and is connected in PARALLEL." }
+  ]
+};
+
+// ═══════════════════════════════════════
+// QUIZ ENGINE
+// ═══════════════════════════════════════
+let selectedSubject = 'english';
+let quizQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let skipped = 0;
+let answered = 0;
+let timerInterval = null;
+let timeLeft = 0;
+let startTime = 0;
+let userAnswers = [];
+
+function selectSubject(el, subject) {
+  document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSubject = subject;
+}
+
+function startQuiz() {
+  const numQ = parseInt(document.getElementById('num-questions').value);
+  timeLeft = parseInt(document.getElementById('time-limit').value);
+  startTime = Date.now();
+  score = 0; skipped = 0; answered = 0; currentIndex = 0; userAnswers = [];
+
+  let pool = [];
+  if (selectedSubject === 'mixed') {
+    Object.values(QUESTIONS).forEach(arr => pool.push(...arr));
+  } else {
+    pool = [...QUESTIONS[selectedSubject]];
+  }
+
+  // Shuffle
+  pool.sort(() => Math.random() - 0.5);
+  quizQuestions = pool.slice(0, Math.min(numQ, pool.length));
+  userAnswers = new Array(quizQuestions.length).fill(null);
+
+  document.getElementById('q-total').textContent = quizQuestions.length;
+  showScreen('quiz-screen');
+  startTimer();
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const q = quizQuestions[currentIndex];
+  document.getElementById('q-subject').textContent = q.tag.split('·')[0].trim();
+  document.getElementById('q-current').textContent = currentIndex + 1;
+  document.getElementById('q-tag').textContent = q.tag;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('explanation-box').style.display = 'none';
+  document.getElementById('next-btn').disabled = true;
+  document.getElementById('skip-btn').disabled = false;
+
+  const pct = (currentIndex / quizQuestions.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('prog-left').textContent = answered + ' answered';
+  document.getElementById('prog-right').textContent = score + ' correct';
+
+  const letters = ['A','B','C','D'];
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+
+  q.opts.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.id = 'opt-' + i;
+    div.onclick = () => selectAnswer(i);
+    div.innerHTML = `<div class="opt-letter">${letters[i]}</div><div class="opt-text">${opt}</div>`;
+    container.appendChild(div);
+  });
+
+  // Restore previous answer if they navigated back
+  if (userAnswers[currentIndex] !== null) {
+    revealAnswer(userAnswers[currentIndex]);
+  }
+}
+
+function selectAnswer(chosen) {
+  if (userAnswers[currentIndex] !== null) return;
+  userAnswers[currentIndex] = chosen;
+  answered++;
+  if (chosen === quizQuestions[currentIndex].a) score++;
+  revealAnswer(chosen);
+  document.getElementById('prog-left').textContent = answered + ' answered';
+  document.getElementById('prog-right').textContent = score + ' correct';
+}
+
+function revealAnswer(chosen) {
+  const q = quizQuestions[currentIndex];
+  document.querySelectorAll('.option').forEach((el, i) => {
+    el.classList.add('locked');
+    el.onclick = null;
+    if (i === q.a) el.classList.add('correct');
+    else if (i === chosen && chosen !== q.a) el.classList.add('wrong');
+    if (i === chosen) el.classList.add('selected');
+  });
+  document.getElementById('explanation-text').textContent = q.exp;
+  document.getElementById('explanation-box').style.display = 'block';
+  document.getElementById('next-btn').disabled = false;
+  document.getElementById('skip-btn').disabled = true;
+  document.getElementById('next-btn').textContent = currentIndex < quizQuestions.length - 1 ? 'Next Question →' : 'See Results →';
+}
+
+function nextQuestion() {
+  if (currentIndex < quizQuestions.length - 1) {
+    currentIndex++;
+    loadQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function skipQuestion() {
+  if (userAnswers[currentIndex] === null) {
+    userAnswers[currentIndex] = -1;
+    skipped++;
+  }
+  if (currentIndex < quizQuestions.length - 1) {
+    currentIndex++;
+    loadQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      showResults();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  const el = document.getElementById('timer');
+  el.textContent = m + ':' + String(s).padStart(2, '0');
+  if (timeLeft <= 60) el.classList.add('warning');
+  else el.classList.remove('warning');
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+  const total = quizQuestions.length;
+  const wrong = answered - score;
+  const realSkipped = total - answered;
+  const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+  const jambScore = Math.round((score / total) * 400);
+  const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+  const tm = Math.floor(timeTaken / 60), ts = timeTaken % 60;
+
+  document.getElementById('score-display').textContent = jambScore;
+  document.getElementById('r-correct').textContent = score;
+  document.getElementById('r-wrong').textContent = wrong;
+  document.getElementById('r-skipped').textContent = realSkipped;
+  document.getElementById('r-percent').textContent = pct + '%';
+  document.getElementById('r-time').textContent = tm + ':' + String(ts).padStart(2,'0');
+
+  const circle = document.getElementById('score-circle');
+  const verdict = document.getElementById('verdict');
+  const pass = jambScore >= 180;
+  circle.className = 'score-circle ' + (pass ? 'pass' : 'fail');
+  verdict.className = 'verdict ' + (pass ? 'pass' : 'fail');
+  verdict.textContent = pass ? '✅ Above JAMB cut-off (180+)' : '❌ Below cut-off — keep practising!';
+
+  // Build review
+  const container = document.getElementById('review-container');
+  container.innerHTML = '';
+  quizQuestions.forEach((q, i) => {
+    const ua = userAnswers[i];
+    const correct = ua === q.a;
+    const skp = ua === null || ua === -1;
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    let tags = '';
+    if (skp) tags = `<span class="tag tag-bad">Skipped</span><span class="tag tag-right">Correct: ${q.opts[q.a]}</span>`;
+    else if (correct) tags = `<span class="tag tag-ok">✓ Correct: ${q.opts[q.a]}</span>`;
+    else tags = `<span class="tag tag-bad">✗ Your answer: ${q.opts[ua]}</span><span class="tag tag-right">Correct: ${q.opts[q.a]}</span>`;
+    div.innerHTML = `<div class="rq">${i+1}. ${q.q}</div><div class="ra">${tags}</div>`;
+    container.appendChild(div);
+  });
+
+  showScreen('results-screen');
+}
+
+function goHome() {
+  showScreen('home-screen');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
+</body>
+</html>
